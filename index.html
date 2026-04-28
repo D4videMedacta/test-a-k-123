@@ -812,7 +812,7 @@ function buildSurgeonCard(s, idx) {
           <div class="surgeon-collapse-row"><span class="surgeon-collapse-key">Fellowship</span><span class="surgeon-collapse-val">${s.fellowship || '—'}</span></div>
         </div>
       </div>
-      <button class="surgeon-btn hs-cta-trigger-button hs-cta-trigger-button-397301760239" data-surgeon="${s.name}">Contact ${s.name}</button>
+      <button class="surgeon-btn">Contact ${s.name}</button>
     </div>
   </div>`;
 }
@@ -1162,17 +1162,6 @@ function closeMenu() {
 
 
 // Back to top button
-document.addEventListener('DOMContentLoaded', function() {
-  // Set surgeon_name URL param when CTA button clicked
-  document.addEventListener('click', function(e) {
-    var btn = e.target.closest('.hs-cta-trigger-button-397301760239');
-    if (btn) {
-      var name = btn.getAttribute('data-surgeon') || '';
-      history.replaceState(null, '', location.pathname + '?surgeon_name=' + encodeURIComponent(name));
-    }
-  });
-});
-
 document.addEventListener('DOMContentLoaded', function() {
   const btn = document.getElementById('back-to-top');
   if (!btn) return;
