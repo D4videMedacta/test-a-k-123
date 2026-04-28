@@ -813,7 +813,7 @@ function buildSurgeonCard(s, idx) {
           <div class="surgeon-collapse-row"><span class="surgeon-collapse-key">Fellowship</span><span class="surgeon-collapse-val">${s.fellowship || '—'}</span></div>
         </div>
       </div>
-      <button class="surgeon-btn" onclick="openSurgeonModal('${s.name.replace(/'/g, '\\'')}'  )">Contact ${s.name}</button>
+      <button class="surgeon-btn" data-surgeon-name="${s.name}">Contact ${s.name}</button>
     </div>
   </div>`;
 }
@@ -1225,8 +1225,14 @@ function closeSurgeonModal() {
   document.getElementById('modal-form-container').innerHTML = '';
 }
 
-// Close on overlay click
+// Open modal on surgeon button click
 document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-surgeon-name]');
+  if (btn) {
+    openSurgeonModal(btn.getAttribute('data-surgeon-name'));
+    return;
+  }
+  // Close on overlay click
   var modal = document.getElementById('surgeon-modal');
   if (e.target === modal) closeSurgeonModal();
 });
