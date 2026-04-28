@@ -888,7 +888,9 @@ function loadSurgeons() {
           el.classList.add('visible');
           if (typeof observer !== 'undefined') observer.observe(el);
         });
-      }, 100);
+        // Re-init HubSpot CTAs for dynamically added buttons
+        if (window._hsp) window._hsp.push(['refreshCTAs']);
+      }, 500);
 
       console.log('[AoK] Loaded', surgeons.length, 'surgeons from Google Sheets');
     })
