@@ -301,6 +301,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.5);padding:64px 5% 40px}
 .back-to-top:hover{background:var(--teal)}
 .back-to-top svg{width:20px;height:20px;fill:white}
 </style>
+<script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
 </head>
 <body>
 
@@ -812,7 +813,7 @@ function buildSurgeonCard(s, idx) {
           <div class="surgeon-collapse-row"><span class="surgeon-collapse-key">Fellowship</span><span class="surgeon-collapse-val">${s.fellowship || '—'}</span></div>
         </div>
       </div>
-      <button class="surgeon-btn hs-cta-trigger-button hs-cta-trigger-button-397301760239">Contact ${s.name}</button>
+      <button class="surgeon-btn" onclick="openSurgeonModal('${s.name.replace(/'/g, '\\'')}'  )">Contact ${s.name}</button>
     </div>
   </div>`;
 }
@@ -888,8 +889,6 @@ function loadSurgeons() {
           el.classList.add('visible');
           if (typeof observer !== 'undefined') observer.observe(el);
         });
-        // Re-init HubSpot CTAs for dynamically added buttons
-        if (window._hsp) window._hsp.push(['refreshCTAs']);
       }, 500);
 
       console.log('[AoK] Loaded', surgeons.length, 'surgeons from Google Sheets');
@@ -1191,7 +1190,57 @@ document.addEventListener('DOMContentLoaded', function() {
 </button>
 
 <!-- Start of HubSpot Embed Code -->
-<script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/139720300.js"></script>
+<script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/139720300.js">
+// ─── SURGEON MODAL ────────────────────────────────────────────────────────────
+function openSurgeonModal(name) {
+  var modal = document.getElementById('surgeon-modal');
+  document.getElementById('modal-surgeon-name').textContent = name;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Reset form container
+  var container = document.getElementById('modal-form-container');
+  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">Loading form...</div>';
+
+  // Create HubSpot form fresh each time
+  hbspt.forms.create({
+    region: 'eu1',
+    portalId: '139720300',
+    formId: '8472e783-5a05-4c12-bd47-3a63204cbc9c',
+    target: '#modal-form-container',
+    onFormReady: function($form) {
+      // Set surgeon_name hidden field
+      var field = $form.find('input[name="surgeon_name"]');
+      if (field.length) {
+        field.val(name).trigger('change');
+      }
+    }
+  });
+}
+
+function closeSurgeonModal() {
+  var modal = document.getElementById('surgeon-modal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  document.getElementById('modal-form-container').innerHTML = '';
+}
+
+// Close on overlay click
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('surgeon-modal');
+  if (e.target === modal) closeSurgeonModal();
+});
+
+</script>
 <!-- End of HubSpot Embed Code -->
+<!-- SURGEON MODAL -->
+<div id="surgeon-modal" style="display:none;position:fixed;inset:0;background:rgba(20,56,127,.55);z-index:600;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:36px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.2);">
+    <button onclick="closeSurgeonModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);">✕</button>
+    <div id="modal-surgeon-name" style="font-family:'Roboto',sans-serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px;"></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;">Request a Consultation</div>
+    <div id="modal-form-container"></div>
+  </div>
+</div>
 </body>
 </html>
