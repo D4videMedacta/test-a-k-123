@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotswolds 4–7 giugno 2025</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --cream: #FAF8F3;
+    --white: #FFFFFF;
+    --border: #E8E2D8;
+    --border-light: #F0EBE2;
+    --text-primary: #2A2620;
+    --text-secondary: #5C5650;
+    --text-tertiary: #9C968E;
+    --honey: #C8A96E;
+    --honey-light: #FDF5E6;
+    --green: #3A6B2A;
+    --green-light: #E8F2E4;
+    --blue: #1A4E7A;
+    --blue-light: #E4EFF8;
+    --red: #8B1E2E;
+    --red-light: #FCE8EB;
+    --oak: #A0522D;
+    --oak-light: #FDF0E6;
+    --d1: #2A6EBB;
+    --d2: #3A8A3A;
+    --d3: #C47A2A;
+    --d4: #7A3A8A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .page { max-width: 780px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  .header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px; font-weight: 600;
+    letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 6px;
+  }
+  .header-meta { font-size: 12.5px; color: var(--text-tertiary); display: flex; flex-wrap: wrap; gap: 14px; }
+
+  /* MAP */
+  .map-section { margin-bottom: 28px; }
+  .map-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .map-tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .map-tab {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    background: var(--white); color: var(--text-secondary); transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .map-tab:hover { border-color: var(--honey); color: var(--oak); }
+  .map-tab.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+  .map-tab[data-day="1"].active { background: var(--d1); border-color: var(--d1); }
+  .map-tab[data-day="2"].active { background: var(--d2); border-color: var(--d2); }
+  .map-tab[data-day="3"].active { background: var(--d3); border-color: var(--d3); }
+  .map-tab[data-day="4"].active { background: var(--d4); border-color: var(--d4); }
+
+  .map-wrap {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  #map { height: 420px; width: 100%; }
+
+  .map-legend {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    padding: 10px 14px;
+    background: var(--white);
+    border-top: 1px solid var(--border-light);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 18px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+  /* DAY CARDS */
+  .day-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; margin-bottom: 16px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .day-header {
+    padding: 13px 20px 11px; border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: #FDFCF8;
+  }
+  .day-badge { font-size: 11px; font-weight: 600; padding: 3px 11px; border-radius: 20px; white-space: nowrap; letter-spacing: 0.3px; }
+  .day-title { font-size: 13.5px; font-weight: 500; font-family: 'Playfair Display', serif; color: var(--text-primary); }
+
+  .stops { padding: 4px 20px 12px; }
+  .stop { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); align-items: flex-start; }
+  .stop:last-child { border-bottom: none; }
+  .time { font-size: 10.5px; color: var(--text-tertiary); min-width: 44px; padding-top: 4px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .stop-content { flex: 1; min-width: 0; }
+  .stop-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+  .stop-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+  .tags { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .tag-foto       { background: #FEF4CE; color: #7A4F01; }
+  .tag-natura     { background: var(--green-light); color: var(--green); }
+  .tag-relax      { background: var(--blue-light); color: var(--blue); }
+  .tag-cena       { background: var(--red-light); color: var(--red); }
+  .tag-gravidanza { background: #EDE7FC; color: #4527A0; }
+  .tag-bunker     { background: #EAEAEA; color: #444; }
+  .tag-michelin   { background: var(--text-primary); color: #F5F0E8; }
+  .tag-oak        { background: var(--oak-light); color: var(--oak); }
+
+  .tip, .warn, .oak-note, .good-note {
+    padding: 9px 14px; margin: 0 20px 12px;
+    border-radius: 0 8px 8px 0; font-size: 11.5px; line-height: 1.55;
+  }
+  .tip         { background: #F4F1EB; border-left: 3px solid var(--honey); color: var(--text-secondary); }
+  .warn        { background: #FFF8EC; border-left: 3px solid #E8A838; color: #6B4A10; }
+  .oak-note    { background: var(--oak-light); border-left: 3px solid var(--oak); color: #6B3010; }
+  .good-note   { background: var(--green-light); border-left: 3px solid var(--green); color: #2A5010; }
+
+  .booking-box { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-top: 8px; }
+  .booking-box .title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 500; display: block; margin-bottom: 10px; }
+  .booking-item { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-light); align-items: flex-start; font-size: 12px; color: var(--text-secondary); }
+  .booking-item:last-child { border-bottom: none; }
+  .bp { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .bp-urgent { background: var(--red-light); color: var(--red); }
+  .bp-soon   { background: #FEF4CE; color: #7A4F01; }
+  .bp-rec    { background: var(--blue-light); color: var(--blue); }
+
+  @media (max-width: 520px) {
+    #map { height: 300px; }
+    .header h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Cotswolds — giugno 2025</h1>
+    <div class="header-meta">
+      <span>📅 4–7 giugno · gio→dom</span>
+      <span>🏠 Base Cheltenham</span>
+      <span>🚗 Auto propria</span>
+      <span>☀️ Alba ~5:00 · Tramonto ~21:15</span>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-section">
+    <div class="map-section-title">Mappa dei percorsi</div>
+    <div class="map-tabs">
+      <button class="map-tab active" data-day="0" onclick="filterDay(0, this)">Tutti i giorni</button>
+      <button class="map-tab" data-day="1" onclick="filterDay(1, this)">Gio 4/6 — Arrivo</button>
+      <button class="map-tab" data-day="2" onclick="filterDay(2, this)">Ven 5/6 — Bath + Royal Oak</button>
+      <button class="map-tab" data-day="3" onclick="filterDay(3, this)">Sab 6/6 — Broadway + Campden</button>
+      <button class="map-tab" data-day="4" onclick="filterDay(4, this)">Dom 7/6 — Partenza</button>
+    </div>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-line" style="background:var(--d1)"></div>Gio 4/6 LGW → Cheltenham</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--d2)"></div>Ven 5/6 Bath + Royal Oak ⭐</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--d3)"></div>Sab 6/6 Broadway + Campden</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--d4)"></div>Dom 7/6 Coln Valley → LGW</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GIORNO 1 -->
+  <div class="day-card">
+    <div class="day-header">
+      <span class="day-badge" style="background:var(--blue-light);color:var(--blue);">gio 4 giugno</span>
+      <span class="day-title">LGW → Stonehenge → Lacock → Bibury → Cheltenham</span>
+    </div>
+    <div class="stops">
+      <div class="stop">
+        <div class="time">08:30</div>
+        <div class="icon" style="background:#F0EFE9;color:#555;">✈</div>
+        <div class="stop-content">
+          <div class="stop-name">Atterraggio LGW + ritiro auto</div>
+          <div class="stop-desc">London Gatwick Airport. Punta a uscire entro le 9:30–10:00. Prenota il parcheggio Meet & Greet per velocizzare.</div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">10:30</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◎</div>
+        <div class="stop-content">
+          <div class="stop-name">Stonehenge</div>
+          <div class="stop-desc">~40 min da LGW via A303. Arrivo tra i primissimi — i torpedoni arrivano dopo le 11. <strong>Timed entry obbligatorio</strong> → english-heritage.org.uk</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 luce ottimale</span>
+            <span class="tag tag-gravidanza">♡ percorso piano ~1 km</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">12:30</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">⬡</div>
+        <div class="stop-content">
+          <div class="stop-name">Pranzo al sacco — Old Sarum o campagna Wiltshire</div>
+          <div class="stop-desc">Old Sarum è un colle romano a 2 km da Stonehenge: vista aperta, vento, silenzio.</div>
+          <div class="tags"><span class="tag tag-natura">natura aperta</span></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">14:00</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">⌂</div>
+        <div class="stop-content">
+          <div class="stop-name">Lacock</div>
+          <div class="stop-desc">~50 min da Stonehenge. Borgo medievale senza auto — usato per le riprese di Pride & Prejudice e Harry Potter. Luce pomeridiana perfetta nei vicoli.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 architettura medievale</span>
+            <span class="tag tag-gravidanza">♡ piano e compatto</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">16:30</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◉</div>
+        <div class="stop-content">
+          <div class="stop-name">Bibury — Arlington Row</div>
+          <div class="stop-desc">~45 min da Lacock. A quest'ora i torpedoni stanno già rientrando. Luce obliqua da ovest sulla pietra miele = foto straordinarie.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 icona assoluta</span>
+            <span class="tag tag-natura">fiume Coln</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">18:30</div>
+        <div class="icon" style="background:#F0EFE9;color:#555;">🏠</div>
+        <div class="stop-content">
+          <div class="stop-name">Arrivo a Cheltenham dagli amici</div>
+          <div class="stop-desc">~30 min da Bibury. Cena a casa, riposo dopo il volo.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">💡 Bibury nel tardo pomeriggio: la luce è calda, i bus se ne sono andati, e sei già sulla strada per Cheltenham.</div>
+  </div>
+
+  <!-- GIORNO 2 -->
+  <div class="day-card">
+    <div class="day-header">
+      <span class="day-badge" style="background:var(--green-light);color:var(--green);">ven 5 giugno</span>
+      <span class="day-title">Bath mattino presto → Burford → Slaughters → Royal Oak ⭐</span>
+    </div>
+    <div class="stops">
+      <div class="stop">
+        <div class="time">07:15</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◉</div>
+        <div class="stop-content">
+          <div class="stop-name">Bath — Royal Crescent + Circus</div>
+          <div class="stop-desc">~45 min da Cheltenham. P&R Lansdown (bus ogni 10 min). A quest'ora il Royal Crescent è deserto — luce dorata da nord-est sulla facciata georgiana.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 ora d'oro</span>
+            <span class="tag tag-gravidanza">♡ passeggiate pianeggianti</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">09:00</div>
+        <div class="icon" style="background:var(--blue-light);color:var(--blue);">⊛</div>
+        <div class="stop-content">
+          <div class="stop-name">Roman Baths + Pulteney Bridge</div>
+          <div class="stop-desc">Apre alle 9 — entra tra i primissimi. Pulteney Bridge: fotografa dai Parade Gardens sotto, vista sulle cascate del Weir.</div>
+          <div class="tags"><span class="tag tag-foto">📷 architettura romana</span></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">11:30</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">⬡</div>
+        <div class="stop-content">
+          <div class="stop-name">Prior Park Landscape Garden — picnic con vista</div>
+          <div class="stop-desc">Parco NT a 15 min a piedi dalla città. Vista panoramica su Bath, ponte palladiano sul lago, panchine all'ombra.</div>
+          <div class="tags">
+            <span class="tag tag-natura">giardino NT</span>
+            <span class="tag tag-gravidanza">♡ tante panchine, ombra</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">13:30</div>
+        <div class="icon" style="background:#F0EFE9;color:#555;">⌂</div>
+        <div class="stop-content">
+          <div class="stop-name">Burford</div>
+          <div class="stop-desc">~1h da Bath. High Street in pietra che scende verso il fiume Windrush. Gelato dal Huffkins.</div>
+          <div class="tags"><span class="tag tag-foto">📷 High Street + Windrush</span></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">15:30</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◉</div>
+        <div class="stop-content">
+          <div class="stop-name">Lower Slaughter → Upper Slaughter</div>
+          <div class="stop-desc">10 min da Burford. Mulino ad acqua, ruscello Eye, ponticelli in pietra. Upper: ancora più tranquilla, quasi nessun turista.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 ruscelli + mulino</span>
+            <span class="tag tag-natura">campagna</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">19:00</div>
+        <div class="icon" style="background:var(--oak-light);color:var(--oak);">★</div>
+        <div class="stop-content">
+          <div class="stop-name">Cena — The Royal Oak, Whatcote ⭐ Michelin</div>
+          <div class="stop-desc">~35 min dagli Slaughters. Pub georgiano del 1600, solo 5–6 tavoli, gestione familiare marito e moglie. Menu degustazione 6 portate. Venerdì aperto 18:00–23:00. <strong>Prenota: +44 1295 688100</strong></div>
+          <div class="tags">
+            <span class="tag tag-michelin">⭐ Michelin</span>
+            <span class="tag tag-oak">pub 1600 · 4,8★</span>
+            <span class="tag tag-relax">solo 5–6 tavoli</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="oak-note">🍽️ Il Royal Oak è aperto venerdì sera — perfetto. 4,8/5 con 222 recensioni. Chiama domani mattina: i posti si esauriscono settimane prima.</div>
+  </div>
+
+  <!-- GIORNO 3 -->
+  <div class="day-card">
+    <div class="day-header">
+      <span class="day-badge" style="background:var(--honey-light);color:#8B5E0A;">sab 6 giugno</span>
+      <span class="day-title">Broadway Tower + Bunker ☢ → Campden → Hidcote → Stanton</span>
+    </div>
+    <div class="good-note" style="margin: 10px 20px 0;">✅ Sabato 6 giugno: il bunker ROC è aperto! Finalmente puoi visitarlo — solo sab/dom.</div>
+    <div class="stops">
+      <div class="stop">
+        <div class="time">06:45</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◎</div>
+        <div class="stop-content">
+          <div class="stop-name">Broadway Tower — alba</div>
+          <div class="stop-desc">30 min da Cheltenham. Punto più alto dei Cotswold (315 m). Nebbia nelle valli di giugno, silenzio totale. Accesso al prato esterno libero dall'alba.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 must assoluto</span>
+            <span class="tag tag-natura">panorama 16 contee</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">10:00</div>
+        <div class="icon" style="background:#EAEAEA;color:#444;">☢</div>
+        <div class="stop-content">
+          <div class="stop-name">Broadway Nuclear Monitoring Post — bunker Guerra Fredda</div>
+          <div class="stop-desc">Stesso sito di Broadway Tower. Bunker ROC anni '60, 15 piedi sottoterra, attrezzature originali. Visita guidata con volontari. <em>Scala verticale per scendere — valutare per tua moglie.</em></div>
+          <div class="tags">
+            <span class="tag tag-bunker">☢ Guerra Fredda</span>
+            <span class="tag tag-foto">📷 interni storici</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">11:00</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">⌂</div>
+        <div class="stop-content">
+          <div class="stop-name">Chipping Campden</div>
+          <div class="stop-desc">10 min da Broadway. High Street in pietra miele, Market Hall 1627, St James Church. Gira Church St e Sheep St — quasi deserto prima delle 10:30.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 borgo iconico</span>
+            <span class="tag tag-gravidanza">♡ piano, compatto</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">12:30</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">⬡</div>
+        <div class="stop-content">
+          <div class="stop-name">Hidcote Manor Garden (NT)</div>
+          <div class="stop-desc">5 min da Campden. Uno dei giardini più belli d'Inghilterra — stanze verdi, siepi scultoree, fioritura piena a inizio giugno.</div>
+          <div class="tags">
+            <span class="tag tag-natura">giardini NT · 4,7★</span>
+            <span class="tag tag-foto">📷 botanica</span>
+            <span class="tag tag-gravidanza">♡ sentieri comodi</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">14:30</div>
+        <div class="icon" style="background:var(--blue-light);color:var(--blue);">☕</div>
+        <div class="stop-content">
+          <div class="stop-name">Pranzo — The Ebrington Arms, Ebrington</div>
+          <div class="stop-desc">3 min da Hidcote. Pub di villaggio autentico, cucina locale, birre artigianali — nessun turista.</div>
+          <div class="tags"><span class="tag tag-relax">pub locale autentico</span></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">16:30</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◉</div>
+        <div class="stop-content">
+          <div class="stop-name">Snowshill + Stanton</div>
+          <div class="stop-desc">Snowshill Manor NT. Poi Stanton: il villaggio più fotogenico e meno visitato — case in pietra, pecore, silenzio. Luce serale sulle facciate dalle 17:30.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 Stanton è irresistibile</span>
+            <span class="tag tag-natura">campagna vera</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">18:30</div>
+        <div class="icon" style="background:#FEF4CE;color:#7A4F01;">◑</div>
+        <div class="stop-content">
+          <div class="stop-name">Luce serale — Cotswold Way Stanton → Stanway</div>
+          <div class="stop-desc">Breve tratto (2 km, pianeggiante). Ore 18–19:30 a giugno = luce radente magica.</div>
+          <div class="tags">
+            <span class="tag tag-foto">📷 ora d'oro serale</span>
+            <span class="tag tag-gravidanza">♡ tratto facile</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GIORNO 4 -->
+  <div class="day-card">
+    <div class="day-header">
+      <span class="day-badge" style="background:#EDE7FC;color:#4527A0;">dom 7 giugno</span>
+      <span class="day-title">Coln Valley → Winchcombe → LGW ✈</span>
+    </div>
+    <div class="stops">
+      <div class="stop">
+        <div class="time">08:00</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">◎</div>
+        <div class="stop-content">
+          <div class="stop-name">Coln Valley — valle segreta</div>
+          <div class="stop-desc">20 min da Cheltenham. Percorri la B4425: Coln St Aldwyns → Coln Rogers → Coln St Dennis. Chiese normanne, mulini, nessun turista.</div>
+          <div class="tags">
+            <span class="tag tag-natura">valle sconosciuta</span>
+            <span class="tag tag-foto">📷 campagna autentica</span>
+          </div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">10:00</div>
+        <div class="icon" style="background:var(--green-light);color:var(--green);">⌂</div>
+        <div class="stop-content">
+          <div class="stop-name">Winchcombe — caffè e saluti</div>
+          <div class="stop-desc">Borgo autentico a 15 min da Cheltenham. Caffè, passeggiata finale prima di rientrare.</div>
+          <div class="tags"><span class="tag tag-relax">rilassato</span></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="time">12:30</div>
+        <div class="icon" style="background:var(--red-light);color:var(--red);">✈</div>
+        <div class="stop-content">
+          <div class="stop-name">Partenza verso London Gatwick Airport</div>
+          <div class="stop-desc">~2h 15min senza traffico. Partite entro le 13:00 per avere margine. Obiettivo: in aeroporto entro le 18:00.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">💡 Domenica mattina la Coln Valley è silenziosa con luce perfetta. Winchcombe vale 45 minuti — poi dritti verso Gatwick.</div>
+  </div>
+
+  <!-- BOOKING BOX -->
+  <div class="booking-box">
+    <strong class="title">📋 Da prenotare — in ordine di urgenza</strong>
+    <div class="booking-item">
+      <span class="bp bp-urgent">SUBITO</span>
+      <div><strong>The Royal Oak, Whatcote</strong> — cena ven 5 giugno · <strong>+44 1295 688100</strong> · theroyaloakwhatcote.co.uk · Pochi tavoli, prenota domani mattina</div>
+    </div>
+    <div class="booking-item">
+      <span class="bp bp-urgent">SUBITO</span>
+      <div><strong>Stonehenge timed entry</strong> — gio 4 giugno, fascia 10:30 · english-heritage.org.uk</div>
+    </div>
+    <div class="booking-item">
+      <span class="bp bp-soon">PRESTO</span>
+      <div><strong>Roman Baths</strong> — ven 5 giugno, apertura ore 9 · romanbaths.co.uk</div>
+    </div>
+    <div class="booking-item">
+      <span class="bp bp-soon">PRESTO</span>
+      <div><strong>Broadway Tower + Bunker</strong> — sab 6 giugno · broadwaytower.co.uk</div>
+    </div>
+    <div class="booking-item">
+      <span class="bp bp-rec">CONSIGLIATO</span>
+      <div><strong>Prior Park Garden (NT)</strong> — ven 5 giugno · nationaltrust.org.uk</div>
+    </div>
+    <div class="booking-item">
+      <span class="bp bp-rec">CONSIGLIATO</span>
+      <div><strong>Hidcote Manor Garden (NT)</strong> — sab 6 giugno · nationaltrust.org.uk/hidcote</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── COORDINATE TAPPE ──
+const stops = [
+  // Giorno 1
+  { day: 1, name: "London Gatwick Airport", lat: 51.1537, lng: -0.1821, time: "08:30", icon: "✈" },
+  { day: 1, name: "Stonehenge", lat: 51.1789, lng: -1.8262, time: "10:30", icon: "◎" },
+  { day: 1, name: "Lacock", lat: 51.4158, lng: -2.1231, time: "14:00", icon: "⌂" },
+  { day: 1, name: "Bibury — Arlington Row", lat: 51.7585, lng: -1.8344, time: "16:30", icon: "◉" },
+  { day: 1, name: "Cheltenham (base)", lat: 51.9000, lng: -2.0724, time: "18:30", icon: "🏠" },
+  // Giorno 2
+  { day: 2, name: "Cheltenham (partenza)", lat: 51.9000, lng: -2.0724, time: "07:00", icon: "🏠" },
+  { day: 2, name: "Bath — Royal Crescent", lat: 51.3866, lng: -2.3671, time: "07:15", icon: "◉" },
+  { day: 2, name: "Roman Baths", lat: 51.3811, lng: -2.3596, time: "09:00", icon: "⊛" },
+  { day: 2, name: "Prior Park Garden", lat: 51.3658, lng: -2.3457, time: "11:30", icon: "⬡" },
+  { day: 2, name: "Burford", lat: 51.8071, lng: -1.6368, time: "13:30", icon: "⌂" },
+  { day: 2, name: "Lower Slaughter", lat: 51.8999, lng: -1.7645, time: "15:30", icon: "◉" },
+  { day: 2, name: "The Royal Oak, Whatcote ⭐", lat: 52.0992, lng: -1.5633, time: "19:00", icon: "★" },
+  // Giorno 3
+  { day: 3, name: "Cheltenham (partenza)", lat: 51.9002, lng: -2.0720, time: "06:30", icon: "🏠" },
+  { day: 3, name: "Broadway Tower + Bunker", lat: 52.0243, lng: -1.8357, time: "06:45", icon: "◎" },
+  { day: 3, name: "Chipping Campden", lat: 52.0508, lng: -1.7808, time: "11:00", icon: "⌂" },
+  { day: 3, name: "Hidcote Manor Garden", lat: 52.0830, lng: -1.7456, time: "12:30", icon: "⬡" },
+  { day: 3, name: "Ebrington Arms", lat: 52.0663, lng: -1.7299, time: "14:30", icon: "☕" },
+  { day: 3, name: "Stanton", lat: 52.0068, lng: -1.9019, time: "16:30", icon: "◉" },
+  // Giorno 4
+  { day: 4, name: "Cheltenham (partenza)", lat: 51.9001, lng: -2.0722, time: "07:30", icon: "🏠" },
+  { day: 4, name: "Coln St Aldwyns", lat: 51.7459, lng: -1.7914, time: "08:00", icon: "◎" },
+  { day: 4, name: "Winchcombe", lat: 51.9572, lng: -1.9692, time: "10:00", icon: "⌂" },
+  { day: 4, name: "London Gatwick Airport", lat: 51.1537, lng: -0.1822, time: "15:30", icon: "✈" },
+];
+
+const dayColors = { 1: "#2A6EBB", 2: "#3A8A3A", 3: "#C47A2A", 4: "#7A3A8A" };
+const dayRoutes = {
+  1: [[51.1537,-0.1821],[51.1789,-1.8262],[51.4158,-2.1231],[51.7585,-1.8344],[51.9000,-2.0724]],
+  2: [[51.9000,-2.0724],[51.3866,-2.3671],[51.3811,-2.3596],[51.3658,-2.3457],[51.8071,-1.6368],[51.8999,-1.7645],[52.0992,-1.5633]],
+  3: [[51.9002,-2.0720],[52.0243,-1.8357],[52.0508,-1.7808],[52.0830,-1.7456],[52.0663,-1.7299],[52.0068,-1.9019]],
+  4: [[51.9001,-2.0722],[51.7459,-1.7914],[51.9572,-1.9692],[51.1537,-0.1822]],
+};
+
+let map, allMarkers = [], allPolylines = [];
+
+function makeSvgIcon(color, emoji, size) {
+  const s = size || 32;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s+8}" viewBox="0 0 ${s} ${s+8}">
+    <circle cx="${s/2}" cy="${s/2}" r="${s/2-2}" fill="${color}" stroke="white" stroke-width="2.5"/>
+    <text x="${s/2}" y="${s/2+4}" text-anchor="middle" font-size="12" fill="white">${emoji}</text>
+    <polygon points="${s/2-5},${s-2} ${s/2+5},${s-2} ${s/2},${s+6}" fill="${color}"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg, className: '', iconSize: [s, s+8],
+    iconAnchor: [s/2, s+6], popupAnchor: [0, -(s+6)]
+  });
+}
+
+window.onload = function() {
+  map = L.map('map', { zoomControl: true, scrollWheelZoom: false });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Draw all routes and markers
+  stops.forEach(function(s) {
+    const color = dayColors[s.day];
+    const marker = L.marker([s.lat, s.lng], { icon: makeSvgIcon(color, s.icon) })
+      .bindPopup(`<div style="font-family:DM Sans,sans-serif;min-width:160px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">${s.name}</div>
+        <div style="font-size:11px;color:#888">Giorno ${s.day} · ${s.time}</div>
+      </div>`)
+      .addTo(map);
+    marker._day = s.day;
+    allMarkers.push(marker);
+  });
+
+  Object.keys(dayRoutes).forEach(function(d) {
+    const poly = L.polyline(dayRoutes[d], {
+      color: dayColors[d], weight: 3, opacity: 0.75,
+      dashArray: d == 4 ? '8,6' : null
+    }).addTo(map);
+    poly._day = parseInt(d);
+    allPolylines.push(poly);
+  });
+
+  fitAll();
+};
+
+function fitAll() {
+  const allCoords = stops.map(s => [s.lat, s.lng]);
+  map.fitBounds(L.latLngBounds(allCoords).pad(0.08));
+}
+
+function filterDay(day, btn) {
+  document.querySelectorAll('.map-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (day === 0) {
+    allMarkers.forEach(m => { m.setOpacity(1); map.addLayer(m); });
+    allPolylines.forEach(p => { p.setStyle({ opacity: 0.75 }); map.addLayer(p); });
+    fitAll();
+    return;
+  }
+
+  const dayCoords = [];
+  allMarkers.forEach(function(m) {
+    if (m._day === day) { m.setOpacity(1); map.addLayer(m); dayCoords.push(m.getLatLng()); }
+    else { m.setOpacity(0.15); }
+  });
+  allPolylines.forEach(function(p) {
+    if (p._day === day) { p.setStyle({ opacity: 0.9, weight: 4 }); }
+    else { p.setStyle({ opacity: 0.1 }); }
+  });
+
+  if (dayCoords.length) {
+    map.fitBounds(L.latLngBounds(dayCoords).pad(0.12));
+  }
+}
+</script>
+</body>
+</html>
